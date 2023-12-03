@@ -1,32 +1,18 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>My App</title>
-	<script>
-window.onload = function() {
-	// Allow CORS
-	fetch('http://localhost:8080/tasks', {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			'Access-Control-Allow-Origin': '*'
-		},
-	}).then(response => response.json())
-		.then(data => {
-			let tasksDiv = document.getElementById("tasks");
-			tasksDiv.innerHTML = '';
-			data.forEach(task => {
-				let taskDiv = document.createElement("div");
-				taskDiv.textContent = task.name;
-				tasksDiv.appendChild(taskDiv);
-			});
-		});
-};
-</script>
-</head>
-<body>
-    <h1>Welcome to My App</h1>
-    <div id="tasks"></div>
-</body>
-</html>
 
+<head>
+	<title>My App</title>
+	<script src="index.js">
+	</script>
+	<meta charset="utf-8">
+	<link rel="x-icon" href="favicon.ico" type="image/x-icon">
+	<style src="index.css"></style>
+</head>
+
+<body>
+	<h1>Task Scheduler</h1>
+	<div id="task-list"></div>
+</body>
+
+</html>

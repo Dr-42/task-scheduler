@@ -1,5 +1,7 @@
 use axum::{
-    response::Html,
+    body::{self, Full},
+    http::{header, Response, StatusCode},
+    response::{Html, IntoResponse},
     routing::{get, post},
     Json, Router,
 };
@@ -26,15 +28,28 @@ async fn main() -> Result<()> {
 
     let ip = format!("0.0.0.0:{}", port);
 
-    let state;
+    let mut state;
     if !Path::new("data.json").exists() {
         state = app::App::new();
+        let t1 = state.add_task("Task 1".to_string()).unwrap();
+        let t2 = state.add_task("Task 2".to_string()).unwrap();
+        let t3 = state.add_task("Task 3".to_string()).unwrap();
+        let t4 = state.add_subtask(t1, "Task 1.1".to_string()).unwrap();
+        let t5 = state.add_subtask(t1, "Task 1.2".to_string()).unwrap();
+        let t6 = state.add_subtask(t2, "Task 2.1".to_string()).unwrap();
+        let t7 = state.add_subtask(t4, "Task 1.1.1".to_string()).unwrap();
+        let _ = state.start_task(t3);
+        let _ = state.start_task(t5);
+        let _ = state.stop_task(t5);
     } else {
         state = app::App::load().unwrap();
         state.save()?;
     }
     let routes = Router::new()
         .route("/", get(index))
+        .route("/index.js", get(get_js))
+        .route("/index.css", get(get_css))
+        .route("/favicon.ico", get(get_favicon))
         .route("/tasks", get(get_tasks))
         .route("/modifytask", post(modify_task))
         .route("/addtask", post(add_task))
@@ -98,4 +113,41 @@ async fn add_task(mut state: axum::extract::State<app::App>, body: Json<AddTask>
 async fn index() -> Html<String> {
     let body = include_str!("../static/index.html").to_string();
     Html(body)
+}
+
+async fn get_js() -> impl IntoResponse {
+    let m = "text/javascript";
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(
+            header::CONTENT_TYPE,
+            header::HeaderValue::from_str(&m).unwrap(),
+        )
+        .body(include_str!("../static/index.js").to_string())
+        .unwrap()
+}
+
+async fn get_css() -> impl IntoResponse {
+    let m = "text/css";
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(
+            header::CONTENT_TYPE,
+            header::HeaderValue::from_str(&m).unwrap(),
+        )
+        .body(include_str!("../static/index.css").to_string())
+        .unwrap()
+}
+
+async fn get_favicon() -> impl IntoResponse {
+    let m = "image/x-icon";
+    let body = include_bytes!("../static/favicon.ico").to_vec();
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(
+            header::CONTENT_TYPE,
+            header::HeaderValue::from_str(&m).unwrap(),
+        )
+        .body(body::boxed(Full::from(body)))
+        .unwrap()
 }
