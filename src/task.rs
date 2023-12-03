@@ -3,7 +3,7 @@ use std::fmt::Display;
 
 use crate::time::Time;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum TaskStaus {
     Incomplete,
     InProgress,
@@ -20,7 +20,7 @@ impl Display for TaskStaus {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Task {
     id: u64,
     parent_id: Option<u64>,

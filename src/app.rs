@@ -1,5 +1,7 @@
 use crate::{task::Task, Result};
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct App {
     tasks: Vec<Task>,
     running_id: u64,
@@ -14,15 +16,15 @@ impl App {
     }
 
     pub fn save(&self) -> Result<()> {
-        let serialized = serde_json::to_string(&self.tasks)?;
-        std::fs::write("tasks.json", serialized)?;
+        let serialized = serde_json::to_string(self)?;
+        std::fs::write("data.json", serialized)?;
         Ok(())
     }
 
-    pub fn load(&mut self) -> Result<()> {
-        let serialized = std::fs::read_to_string("tasks.json")?;
-        self.tasks = serde_json::from_str(&serialized)?;
-        Ok(())
+    pub fn load() -> Result<App> {
+        let serialized = std::fs::read_to_string("data.json")?;
+        let app = serde_json::from_str(&serialized)?;
+        Ok(app)
     }
 
     pub fn add_task(&mut self, name: String) -> Result<u64> {
