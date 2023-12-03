@@ -139,33 +139,6 @@ impl Time {
         }
     }
 
-    pub fn time_span(&self, other: &Time) -> Duration {
-        let self_seconds = self.to_iso();
-        let other_seconds = other.to_iso();
-        let seconds = if self_seconds > other_seconds {
-            self_seconds - other_seconds
-        } else {
-            other_seconds - self_seconds
-        };
-        Duration::from_seconds(seconds)
-    }
-
-    pub fn get_previous_day(&self) -> Self {
-        let t2 = self.to_iso() - 24 * 60 * 60;
-        Time::from_iso(t2)
-    }
-
-    pub fn filename(&self) -> String {
-        format!(
-            "timeblocks/{:04}-{:02}-{:02}.json",
-            self.year, self.month, self.day
-        )
-    }
-
-    pub fn before(&self, other: &Time) -> bool {
-        self.to_iso() <= other.to_iso()
-    }
-
     pub fn now() -> Self {
         use std::time::SystemTime;
         let gmt_offset = Duration::from_seconds(5 * 60 * 60 + 30 * 60);

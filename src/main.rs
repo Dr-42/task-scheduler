@@ -111,31 +111,34 @@ async fn add_task(mut state: axum::extract::State<app::App>, body: Json<AddTask>
 }
 
 async fn index() -> Html<String> {
-    let body = include_str!("../static/index.html").to_string();
-    Html(body)
+    //let body = include_str!("../static/index.html").to_string();
+    let file = std::fs::read_to_string("static/index.html").unwrap();
+    Html(file)
 }
 
 async fn get_js() -> impl IntoResponse {
     let m = "text/javascript";
+    let content = std::fs::read_to_string("static/index.js").unwrap();
     Response::builder()
         .status(StatusCode::OK)
         .header(
             header::CONTENT_TYPE,
             header::HeaderValue::from_str(&m).unwrap(),
         )
-        .body(include_str!("../static/index.js").to_string())
+        .body(content)
         .unwrap()
 }
 
 async fn get_css() -> impl IntoResponse {
     let m = "text/css";
+    let content = std::fs::read_to_string("static/index.css").unwrap();
     Response::builder()
         .status(StatusCode::OK)
         .header(
             header::CONTENT_TYPE,
             header::HeaderValue::from_str(&m).unwrap(),
         )
-        .body(include_str!("../static/index.css").to_string())
+        .body(content)
         .unwrap()
 }
 

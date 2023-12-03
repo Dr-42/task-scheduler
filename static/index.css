@@ -1,0 +1,51 @@
+body {
+    font-size: larger;
+}
+
+ul,
+#myUL {
+    list-style-type: none;
+}
+
+#myUL {
+    margin: 0;
+    padding: 0;
+}
+
+.caret {
+    cursor: pointer;
+    user-select: none;
+    /* Prevent text selection */
+}
+
+.caret::before {
+    content: "\25B6";
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+.caret-down::before {
+    transform: rotate(90deg);
+}
+
+.empty-caret {
+    cursor: pointer;
+    user-select: none;
+}
+
+.empty-caret::before {
+    content: "\25B7";
+    color: black;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+.nested {
+    display: none;
+}
+
+.active {
+    display: block;
+    margin: 0;
+}

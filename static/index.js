@@ -54,16 +54,36 @@ function parse_task_tree(task_datas) {
 }
 
 function task_html(task) {
-    let html = '<li>' + task.icon() + ' ' + task.name;
-    if (task.children != null) {
-        html += '<ul>';
+    let html = '<div class="task">';
+    html += '<li>';
+    if (task.children.length !== 0) {
+        html += '<span class="caret">';
+        html += task.icon() + ' ' + task.name;
+        html += '</span>'
+        html += '<ul class="nested">';
         for (let i = 0; i < task.children.length; i++) {
             html += task_html(task.children[i]);
         }
         html += '</ul>';
+    } else {
+        html += '<span class="empty-caret">';
+        html += task.icon() + ' ' + task.name;
+        html += '</span>'
     }
-    html += '</li>';
+    html += '</li></div>';
     return html;
+}
+
+function enable_toggles() {
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+    for (i = 0; i < toggler.length; i++) {
+        toggler[i].addEventListener("click", function () {
+            this.parentElement.querySelector(".nested").classList.toggle("active");
+            this.classList.toggle("caret-down");
+        });
+    }
 }
 
 
@@ -82,5 +102,6 @@ window.onload = function () {
                 let html = task_html(global_tasks[i]);
                 document.getElementById('task-list').innerHTML += html;
             }
+            enable_toggles();
         });
 };
