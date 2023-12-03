@@ -1,7 +1,9 @@
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 use crate::time::Time;
 
+#[derive(Serialize, Deserialize)]
 pub enum TaskStaus {
     Incomplete,
     InProgress,
@@ -18,54 +20,51 @@ impl Display for TaskStaus {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Task {
     id: u64,
-    description: String,
+    parent_id: Option<u64>,
+    name: String,
     status: TaskStaus,
-    start_time: Time,
+    start_time: Option<Time>,
     end_time: Option<Time>,
-    subtasks: Vec<Task>,
 }
 
 impl Task {
-    pub fn new(id: u64, description: String) -> Task {
+    pub fn new(id: u64, parent_id: Option<u64>, name: String) -> Task {
         Task {
             id,
-            description,
+            parent_id,
+            name,
             status: TaskStaus::Incomplete,
-            subtasks: Vec::new(),
-            start_time: Time::now(),
+            start_time: None,
             end_time: None,
         }
     }
 
     pub fn start(&mut self) {
         self.status = TaskStaus::InProgress;
-        self.start_time = Time::now();
+        self.start_time = Some(Time::now());
     }
 
-    pub fn finish(&mut self) {
+    pub fn stop(&mut self) {
         self.status = TaskStaus::Complete;
         self.end_time = Some(Time::now());
     }
 
-    pub fn add_subtask(&mut self, id: u64, name: String) {
-        self.subtasks.push(Task::new(id, name));
+    pub fn get_id(&self) -> u64 {
+        self.id
+    }
+
+    pub fn get_parent_id(&self) -> Option<u64> {
+        self.parent_id
     }
 
     pub fn get_name(&self) -> &str {
-        &self.description
+        &self.name
     }
 
     pub fn get_status(&self) -> &TaskStaus {
         &self.status
-    }
-
-    pub fn get_subtasks(&self) -> &Vec<Task> {
-        &self.subtasks
-    }
-
-    pub fn get_id(&self) -> u64 {
-        self.id
     }
 }
