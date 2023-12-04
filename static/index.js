@@ -204,6 +204,8 @@ function save_toggles(tasks) {
 
 async function reload() {
     let toggles = save_toggles(global_tasks);
+    // Wait 100 ms
+    await new Promise(r => setTimeout(r, 100));
     fetch('http://localhost:8080/tasks', {
         method: 'GET',
         headers: {
