@@ -21,7 +21,7 @@ class Time {
 }
 
 class Task {
-    constructor(id, name, status, parent_id, start_time, end_time) {
+    constructor(id, name, status, parent_id, start_time, end_time, summary) {
         this.id = id;
         this.name = name;
         this.status = status;
@@ -29,6 +29,7 @@ class Task {
         this.start_time = start_time;
         this.end_time = end_time;
         this.children = [];
+        this.summary = summary;
     }
 
     add_child(child) {
@@ -64,6 +65,11 @@ class Task {
         } else if (this.status === 'Incomplete') {
             html += '<button onclick=start_task(' + this.id + ')>⇥</button>';
         }
+
+        if (this.summary !== null) {
+            html += '<a href="' + this.summary + '">📄</a>';
+        }
+
         html += '<button onclick=add_child_task(' + this.id + ')>+</button>';
 
 
@@ -99,7 +105,7 @@ function parse_task_tree(task_datas) {
         if (task_data.end_time !== null) {
             end_time = new Time(task_data.end_time.year, task_data.end_time.month, task_data.end_time.day, task_data.end_time.hour, task_data.end_time.minute, task_data.end_time.second);
         }
-        let task = new Task(task_data.id, task_data.name, task_data.status, task_data.parent_id, start_time, end_time);
+        let task = new Task(task_data.id, task_data.name, task_data.status, task_data.parent_id, start_time, end_time, task_data.summary);
         task_map[task_data.id] = task;
         tasks.push(task);
     }
@@ -217,22 +223,67 @@ function start_task(task_id) {
     });
 }
 
-function complete_task(task_id) {
-    fetch('http://localhost:8080/modifytask', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        // body: JSON.stringify({name: name, parent_id: parent_id})
-        body: JSON.stringify({ id: task_id, action: "stop" })
-    }).then(data => {
-        console.log(data);
-        reload();
-    });
+function dialogue_setup(summary_dialogue) {
+    let nosum_button = document.getElementById('nosum');
+    let submit_summary_button = document.getElementById('submit');
+
+    nosum_button.onclick = function () {
+        summary_dialogue.close('nosum');
+    }
+
+    submit_summary_button.onclick = function () {
+        let summary_file = document.getElementById('summary-file').files[0];
+        var reader = new FileReader;
+        reader.readAsText(summary_file, "UTF-8");
+        reader.onload = function (evt) {
+            summary_dialogue.close(evt.target.result);
+        }
+        reader.onerror = function (evt) {
+            summary_dialogue.close(null);
+        }
+    }
 }
 
+function complete_task(task_id) {
+    // Dialogue to fetch the summary file. Can be blank
+    let summary_dialogue = document.getElementById('summary-dialogue');
+    summary_dialogue.showModal();
+    dialogue_setup(summary_dialogue);
 
+    summary_dialogue.addEventListener('close', function onClose() {
+        console.log(summary_dialogue.returnValue);
+        if (summary_dialogue.returnValue === 'nosum') {
+            summary_path = null;
+            fetch('http://localhost:8080/modifytask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                // body: JSON.stringify({name: name, parent_id: parent_id})
+                body: JSON.stringify({ id: task_id, action: "stop", summary: summary_path })
+            }).then(data => {
+                console.log(data);
+                reload();
+            });
+        } else {
+            summary_path = summary_dialogue.returnValue;
+            fetch('http://localhost:8080/modifytask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                // body: JSON.stringify({name: name, parent_id: parent_id})
+                body: JSON.stringify({ id: task_id, action: "stop", summary: summary_path })
+            }).then(data => {
+                console.log(data);
+                reload();
+            });
+        }
+    });
+
+}
 
 window.onload = function () {
     reload();

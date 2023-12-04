@@ -41,7 +41,7 @@ async fn main() -> Result<()> {
         let t7 = state.add_subtask(t4, "Task 1.1.1".to_string()).unwrap();
         let _ = state.start_task(t3);
         let _ = state.start_task(t5);
-        let _ = state.stop_task(t5);
+        let _ = state.stop_task(t5, None);
         state.save()?;
     } else {
         state = app::App::load().unwrap();
@@ -55,6 +55,7 @@ async fn main() -> Result<()> {
         .route("/tasks", get(get_tasks))
         .route("/modifytask", post(modify_task))
         .route("/addtask", post(add_task))
+        .route("/summaries/:key", get(get_summaries))
         .layer(CorsLayer::permissive());
     let router_service = routes.into_make_service();
     axum::Server::bind(&ip.parse()?)
@@ -72,6 +73,7 @@ async fn get_tasks() -> Json<Vec<task::Task>> {
 struct PostTask {
     id: u64,
     action: String,
+    summary: Option<String>,
 }
 
 async fn modify_task(body: Json<PostTask>) -> impl IntoResponse {
@@ -87,7 +89,7 @@ async fn modify_task(body: Json<PostTask>) -> impl IntoResponse {
             state.start_task(task).unwrap();
         }
         "stop" => {
-            state.stop_task(task).unwrap();
+            state.stop_task(task, body.summary.clone()).unwrap();
         }
         _ => {}
     }
@@ -122,6 +124,17 @@ async fn add_task(body: Json<AddTask>) -> impl IntoResponse {
         .status(StatusCode::OK)
         .body("".to_string())
         .unwrap()
+}
+
+async fn get_summaries(axum::extract::Path(key): axum::extract::Path<String>) -> String {
+    let file = std::fs::read_to_string(format!("summaries/{}", key));
+    match file {
+        Ok(file) => file,
+        Err(_) => {
+            println!("{}", key);
+            "Error reading file".to_string()
+        }
+    }
 }
 
 async fn index() -> Html<String> {

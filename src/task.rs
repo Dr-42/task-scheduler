@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::{fmt::Display, path::Path};
 
 use crate::time::Time;
 
@@ -28,6 +28,7 @@ pub struct Task {
     status: TaskStaus,
     start_time: Option<Time>,
     end_time: Option<Time>,
+    summary: Option<String>,
 }
 
 impl Task {
@@ -39,6 +40,7 @@ impl Task {
             status: TaskStaus::Incomplete,
             start_time: None,
             end_time: None,
+            summary: None,
         }
     }
 
@@ -47,9 +49,16 @@ impl Task {
         self.start_time = Some(Time::now());
     }
 
-    pub fn stop(&mut self) {
+    pub fn stop(&mut self, summary: Option<String>) {
         self.status = TaskStaus::Complete;
         self.end_time = Some(Time::now());
+        if let Some(summary) = summary {
+            if !Path::exists(Path::new("summaries")) {
+                std::fs::create_dir("summaries").unwrap();
+            }
+            std::fs::write(format!("summaries/{}.md", self.id), summary).unwrap();
+            self.summary = Some(format!("summaries/{}.md", self.id));
+        }
     }
 
     pub fn get_id(&self) -> u64 {

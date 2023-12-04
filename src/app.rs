@@ -51,13 +51,13 @@ impl App {
         Ok(())
     }
 
-    pub fn stop_task(&mut self, id: u64) -> Result<()> {
+    pub fn stop_task(&mut self, id: u64, summary: Option<String>) -> Result<()> {
         let task = self
             .tasks
             .iter_mut()
             .find(|task| task.get_id() == id)
             .ok_or("Task not found")?;
-        task.stop();
+        task.stop(summary);
         Ok(())
     }
 
