@@ -2,6 +2,10 @@
 name = "task-scheduler"
 version = "0.1.0"
 edition = "2021"
+license = "BSD-2-Clause"
+description = "Simple utility to manage stuff you are doing"
+homepage = "https://github.com/Dr-42/task-scheduler"
+repository = "https://github.com/Dr-42/task-scheduler"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
