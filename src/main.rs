@@ -20,27 +20,16 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = env::args().collect::<Vec<String>>();
-    let ip;
-    if args.len() == 2 {
-        ip = args[1].parse::<String>()?;
+    let ip = if args.len() == 2 {
+        args[1].parse::<String>()?
     } else {
         println!("Usage: {} <ip:port>", args[0]);
         return Ok(());
-    }
+    };
 
-    let mut state;
+    let state;
     if !Path::new("data.json").exists() {
         state = app::App::new();
-        let t1 = state.add_task("Task 1".to_string()).unwrap();
-        let t2 = state.add_task("Task 2".to_string()).unwrap();
-        let t3 = state.add_task("Task 3".to_string()).unwrap();
-        let t4 = state.add_subtask(t1, "Task 1.1".to_string()).unwrap();
-        let t5 = state.add_subtask(t1, "Task 1.2".to_string()).unwrap();
-        let _t6 = state.add_subtask(t2, "Task 2.1".to_string()).unwrap();
-        let _t7 = state.add_subtask(t4, "Task 1.1.1".to_string()).unwrap();
-        let _ = state.start_task(t3);
-        let _ = state.start_task(t5);
-        let _ = state.stop_task(t5, None);
         state.save().await?;
     } else {
         state = app::App::load().await?;
@@ -134,7 +123,7 @@ async fn get_summaries(axum::extract::Path(key): axum::extract::Path<String>) ->
                 .status(StatusCode::OK)
                 .header(
                     header::CONTENT_TYPE,
-                    header::HeaderValue::from_str(&m).unwrap(),
+                    header::HeaderValue::from_str(m).unwrap(),
                 )
                 .body(file)
                 .unwrap()
@@ -150,24 +139,23 @@ async fn get_summaries(axum::extract::Path(key): axum::extract::Path<String>) ->
 }
 
 async fn index() -> Html<String> {
-    //let body = include_str!("../static/index.html").to_string();
-    let file = async_fs::read_to_string("static/index.html").await.unwrap();
-    Html(file)
+    let file = include_str!("../static/index.html");
+    Html(file.to_string())
 }
 
 async fn get_js() -> impl IntoResponse {
     let m = "text/javascript";
-    let content = async_fs::read_to_string("static/index.js").await.unwrap();
+    let content = include_str!("../static/index.js");
     let mut result = String::new();
     result.push_str("let global_ip = \"");
     result.push_str(&env::args().collect::<Vec<String>>()[1]);
     result.push_str("\";");
-    result.push_str(&content);
+    result.push_str(content);
     Response::builder()
         .status(StatusCode::OK)
         .header(
             header::CONTENT_TYPE,
-            header::HeaderValue::from_str(&m).unwrap(),
+            header::HeaderValue::from_str(m).unwrap(),
         )
         .body(result)
         .unwrap()
@@ -175,14 +163,14 @@ async fn get_js() -> impl IntoResponse {
 
 async fn get_css() -> impl IntoResponse {
     let m = "text/css";
-    let content = async_fs::read_to_string("static/index.css").await.unwrap();
+    let content = include_str!("../static/index.css");
     Response::builder()
         .status(StatusCode::OK)
         .header(
             header::CONTENT_TYPE,
-            header::HeaderValue::from_str(&m).unwrap(),
+            header::HeaderValue::from_str(m).unwrap(),
         )
-        .body(content)
+        .body(content.to_string())
         .unwrap()
 }
 
@@ -193,7 +181,7 @@ async fn get_favicon() -> impl IntoResponse {
         .status(StatusCode::OK)
         .header(
             header::CONTENT_TYPE,
-            header::HeaderValue::from_str(&m).unwrap(),
+            header::HeaderValue::from_str(m).unwrap(),
         )
         .body(body::boxed(Full::from(body)))
         .unwrap()
