@@ -1,5 +1,5 @@
 [package]
-name = "task-scheduler"
+name = "tasks-todo"
 version = "0.1.0"
 edition = "2021"
 license = "BSD-2-Clause"

@@ -1,12 +1,12 @@
-# Task Scheduler
+# Tasks Todo
 
 Simple utility to manage stuff you are doing
 
 ## Usage
 
 ```console
-cargo install task-scheduler
-task-scheduler <ip:port>
+cargo install tasks-todo
+tasks-todo <ip:port>
 ```
 
 ## To Know
