@@ -30,7 +30,7 @@ ul,
 li {
     margin: 3%;
     padding: 0;
-    background-color: #011a24;
+    background-color: #060113;
     /*border: 2px solid #0fed07;*/
     border-radius: 5px;
     display: flex;
@@ -138,7 +138,7 @@ button {
     width: 10vh;
     font-size: 5vh;
     border: 1px solid #ddd;
-    background-color: #032f05;
+    background-color: #010801;
     box-shadow: 0px 5px 10px 0px rgba(255, 0, 255, 0.7);
     color: #fefeee;
     border-radius: 30%;
