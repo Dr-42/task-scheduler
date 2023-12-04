@@ -135,7 +135,7 @@ function add_task() {
         return;
     }
     // post
-    fetch('http://localhost:8080/addtask', {
+    fetch(`http://${global_ip}/addtask`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ function add_child_task(parent_id) {
         return;
     }
     // post
-    fetch('http://localhost:8080/addtask', {
+    fetch(`http://${global_ip}/addtask`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ async function reload() {
     let toggles = save_toggles(global_tasks);
     // Wait 100 ms
     await new Promise(r => setTimeout(r, 100));
-    fetch('http://localhost:8080/tasks', {
+    fetch(`http://${global_ip}/tasks`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -231,7 +231,7 @@ async function reload() {
 }
 
 function start_task(task_id) {
-    fetch('http://localhost:8080/modifytask', {
+    fetch(`http://${global_ip}/modifytask`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -276,7 +276,7 @@ function complete_task(task_id) {
         console.log(summary_dialogue.returnValue);
         if (summary_dialogue.returnValue === 'nosum') {
             summary_path = null;
-            fetch('http://localhost:8080/modifytask', {
+            fetch(`http://${global_ip}/modifytask`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -290,7 +290,7 @@ function complete_task(task_id) {
             });
         } else {
             summary_path = summary_dialogue.returnValue;
-            fetch('http://localhost:8080/modifytask', {
+            fetch(`http://${global_ip}/modifytask`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

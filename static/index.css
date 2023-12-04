@@ -1,16 +1,9 @@
 body {
-    font-size: larger;
+    font-size: 28px;
     background-color: #181818;
     color: #fefebe;
     margin: auto;
     width: 70%;
-}
-
-/* on large screen 30% of the screen width */
-@media screen and (min-width: 800px) {
-    body {
-        width: 30%;
-    }
 }
 
 ul,
@@ -26,8 +19,8 @@ ul,
 li {
     margin: 3%;
     padding: 0;
-    background-color: #02233188;
-    border: 2px solid #0fed079a;
+    background-color: #022331;
+    border: 2px solid #0fed07;
     border-radius: 5px;
     display: flex;
     flex-direction: column;
@@ -118,7 +111,7 @@ button {
 
 button:hover {
     background-color: #e5e5e5;
-    color: #032f05;
+    color: #13db1d;
 }
 
 .task-name {
@@ -130,7 +123,7 @@ button:hover {
 dialog {
     background-color: #181818;
     color: #fefebe;
-    border: 2px solid #0fed079a;
+    border: 2px solid #0fed07;
     border-radius: 5px;
     padding: 8px;
 }

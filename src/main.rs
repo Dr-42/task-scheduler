@@ -20,14 +20,13 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = env::args().collect::<Vec<String>>();
-    let mut port = 8080;
+    let ip;
     if args.len() == 2 {
-        port = args[1].parse::<u16>()?;
+        ip = args[1].parse::<String>()?;
     } else {
-        println!("Usage: {} <port>", args[0]);
+        println!("Usage: {} <ip:port>", args[0]);
+        return Ok(());
     }
-
-    let ip = format!("0.0.0.0:{}", port);
 
     let mut state;
     if !Path::new("data.json").exists() {
@@ -159,13 +158,18 @@ async fn index() -> Html<String> {
 async fn get_js() -> impl IntoResponse {
     let m = "text/javascript";
     let content = async_fs::read_to_string("static/index.js").await.unwrap();
+    let mut result = String::new();
+    result.push_str("let global_ip = \"");
+    result.push_str(&env::args().collect::<Vec<String>>()[1]);
+    result.push_str("\";");
+    result.push_str(&content);
     Response::builder()
         .status(StatusCode::OK)
         .header(
             header::CONTENT_TYPE,
             header::HeaderValue::from_str(&m).unwrap(),
         )
-        .body(content)
+        .body(result)
         .unwrap()
 }
 
