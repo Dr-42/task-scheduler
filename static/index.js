@@ -58,11 +58,11 @@ class Task {
             html += '</span>'
         }
         if (this.status === 'InProgress') {
-            html += '<button onclick=complete_task(' + this.id + ')>✅</button>';
+            html += '<button onclick=complete_task(' + this.id + ')>⇉</button>';
         } else if (this.status === 'Complete') {
             html += ' '
         } else if (this.status === 'Incomplete') {
-            html += '<button onclick=start_task(' + this.id + ')>🔴</button>';
+            html += '<button onclick=start_task(' + this.id + ')>⇥</button>';
         }
         html += '<button onclick=add_child_task(' + this.id + ')>+</button>';
 
@@ -201,6 +201,37 @@ async function reload() {
             toggles = [];
         });
 }
+
+function start_task(task_id) {
+    fetch('http://localhost:8080/modifytask', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        // body: JSON.stringify({name: name, parent_id: parent_id})
+        body: JSON.stringify({ id: task_id, action: "start" })
+    }).then(data => {
+        console.log(data);
+        reload();
+    });
+}
+
+function complete_task(task_id) {
+    fetch('http://localhost:8080/modifytask', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        // body: JSON.stringify({name: name, parent_id: parent_id})
+        body: JSON.stringify({ id: task_id, action: "stop" })
+    }).then(data => {
+        console.log(data);
+        reload();
+    });
+}
+
 
 
 window.onload = function () {
