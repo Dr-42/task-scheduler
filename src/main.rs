@@ -37,15 +37,15 @@ async fn main() -> Result<()> {
         let t3 = state.add_task("Task 3".to_string()).unwrap();
         let t4 = state.add_subtask(t1, "Task 1.1".to_string()).unwrap();
         let t5 = state.add_subtask(t1, "Task 1.2".to_string()).unwrap();
-        let t6 = state.add_subtask(t2, "Task 2.1".to_string()).unwrap();
-        let t7 = state.add_subtask(t4, "Task 1.1.1".to_string()).unwrap();
+        let _t6 = state.add_subtask(t2, "Task 2.1".to_string()).unwrap();
+        let _t7 = state.add_subtask(t4, "Task 1.1.1".to_string()).unwrap();
         let _ = state.start_task(t3);
         let _ = state.start_task(t5);
         let _ = state.stop_task(t5, None);
-        state.save()?;
+        state.save().await?;
     } else {
-        state = app::App::load().unwrap();
-        state.save()?;
+        state = app::App::load().await?;
+        state.save().await?;
     }
     let routes = Router::new()
         .route("/", get(index))
@@ -65,7 +65,7 @@ async fn main() -> Result<()> {
 }
 
 async fn get_tasks() -> Json<Vec<task::Task>> {
-    let state = App::load().unwrap();
+    let state = App::load().await.unwrap();
     Json(state.get_tasks().to_vec())
 }
 
@@ -77,7 +77,7 @@ struct PostTask {
 }
 
 async fn modify_task(body: Json<PostTask>) -> impl IntoResponse {
-    let mut state = App::load().unwrap();
+    let mut state = App::load().await.unwrap();
     let tasks = state.get_tasks();
     let task = tasks
         .iter()
@@ -89,11 +89,11 @@ async fn modify_task(body: Json<PostTask>) -> impl IntoResponse {
             state.start_task(task).unwrap();
         }
         "stop" => {
-            state.stop_task(task, body.summary.clone()).unwrap();
+            state.stop_task(task, body.summary.clone()).await.unwrap();
         }
         _ => {}
     }
-    state.save().unwrap();
+    state.save().await.unwrap();
     println!("{} {}ed", body.id, body.action);
     Response::builder()
         .status(StatusCode::OK)
@@ -108,7 +108,7 @@ struct AddTask {
 }
 
 async fn add_task(body: Json<AddTask>) -> impl IntoResponse {
-    let mut state = App::load().unwrap();
+    let mut state = App::load().await.unwrap();
     println!("{:?}", body);
     let parent = body.parent;
     let name = &body.name;
@@ -118,7 +118,7 @@ async fn add_task(body: Json<AddTask>) -> impl IntoResponse {
     } else {
         state.add_task(name.to_string()).unwrap();
     }
-    state.save().unwrap();
+    state.save().await.unwrap();
     println!("Added task {}", name);
     Response::builder()
         .status(StatusCode::OK)
@@ -126,26 +126,39 @@ async fn add_task(body: Json<AddTask>) -> impl IntoResponse {
         .unwrap()
 }
 
-async fn get_summaries(axum::extract::Path(key): axum::extract::Path<String>) -> String {
-    let file = std::fs::read_to_string(format!("summaries/{}", key));
+async fn get_summaries(axum::extract::Path(key): axum::extract::Path<String>) -> impl IntoResponse {
+    let file = async_fs::read_to_string(format!("summaries/{}", key)).await;
     match file {
-        Ok(file) => file,
+        Ok(file) => {
+            let m = "text/html";
+            Response::builder()
+                .status(StatusCode::OK)
+                .header(
+                    header::CONTENT_TYPE,
+                    header::HeaderValue::from_str(&m).unwrap(),
+                )
+                .body(file)
+                .unwrap()
+        }
         Err(_) => {
             println!("{}", key);
-            "Error reading file".to_string()
+            Response::builder()
+                .status(StatusCode::NOT_FOUND)
+                .body(format!("<h1>Error : 404,</h1><p>{} not fount</p>", key))
+                .unwrap()
         }
     }
 }
 
 async fn index() -> Html<String> {
     //let body = include_str!("../static/index.html").to_string();
-    let file = std::fs::read_to_string("static/index.html").unwrap();
+    let file = async_fs::read_to_string("static/index.html").await.unwrap();
     Html(file)
 }
 
 async fn get_js() -> impl IntoResponse {
     let m = "text/javascript";
-    let content = std::fs::read_to_string("static/index.js").unwrap();
+    let content = async_fs::read_to_string("static/index.js").await.unwrap();
     Response::builder()
         .status(StatusCode::OK)
         .header(
@@ -158,7 +171,7 @@ async fn get_js() -> impl IntoResponse {
 
 async fn get_css() -> impl IntoResponse {
     let m = "text/css";
-    let content = std::fs::read_to_string("static/index.css").unwrap();
+    let content = async_fs::read_to_string("static/index.css").await.unwrap();
     Response::builder()
         .status(StatusCode::OK)
         .header(

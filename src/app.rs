@@ -15,14 +15,14 @@ impl App {
         }
     }
 
-    pub fn save(&self) -> Result<()> {
+    pub async fn save(&self) -> Result<()> {
         let serialized = serde_json::to_string_pretty(self)?;
-        std::fs::write("data.json", serialized)?;
+        async_fs::write("data.json", serialized).await?;
         Ok(())
     }
 
-    pub fn load() -> Result<App> {
-        let serialized = std::fs::read_to_string("data.json")?;
+    pub async fn load() -> Result<App> {
+        let serialized = async_fs::read_to_string("data.json").await?;
         let app = serde_json::from_str(&serialized)?;
         Ok(app)
     }
@@ -51,13 +51,13 @@ impl App {
         Ok(())
     }
 
-    pub fn stop_task(&mut self, id: u64, summary: Option<String>) -> Result<()> {
+    pub async fn stop_task(&mut self, id: u64, summary: Option<String>) -> Result<()> {
         let task = self
             .tasks
             .iter_mut()
             .find(|task| task.get_id() == id)
             .ok_or("Task not found")?;
-        task.stop(summary);
+        task.stop(summary).await;
         Ok(())
     }
 

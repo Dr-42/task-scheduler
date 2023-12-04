@@ -49,15 +49,18 @@ impl Task {
         self.start_time = Some(Time::now());
     }
 
-    pub fn stop(&mut self, summary: Option<String>) {
+    pub async fn stop(&mut self, summary: Option<String>) {
         self.status = TaskStaus::Complete;
         self.end_time = Some(Time::now());
         if let Some(summary) = summary {
             if !Path::exists(Path::new("summaries")) {
-                std::fs::create_dir("summaries").unwrap();
+                async_fs::create_dir("summaries").await.unwrap();
             }
-            std::fs::write(format!("summaries/{}.md", self.id), summary).unwrap();
-            self.summary = Some(format!("summaries/{}.md", self.id));
+            let summary_text = markdown::to_html(&summary);
+            async_fs::write(format!("summaries/{}.html", self.id), summary_text)
+                .await
+                .unwrap();
+            self.summary = Some(format!("summaries/{}.html", self.id));
         }
     }
 
@@ -65,14 +68,17 @@ impl Task {
         self.id
     }
 
+    #[allow(dead_code)]
     pub fn get_parent_id(&self) -> Option<u64> {
         self.parent_id
     }
 
+    #[allow(dead_code)]
     pub fn get_name(&self) -> &str {
         &self.name
     }
 
+    #[allow(dead_code)]
     pub fn get_status(&self) -> &TaskStaus {
         &self.status
     }

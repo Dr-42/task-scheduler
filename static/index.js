@@ -125,7 +125,6 @@ function parse_task_tree(task_datas) {
     return task_tree;
 }
 
-
 function add_child_task(parent_id) {
     let name = prompt("Task name:");
     if (name === null) {
@@ -140,9 +139,9 @@ function add_child_task(parent_id) {
         },
         // body: JSON.stringify({name: name, parent_id: parent_id})
         body: JSON.stringify({ name: name, parent: parent_id })
-    }).then(data => {
+    }).then(async data => {
         console.log(data);
-        reload();
+        await reload();
     });
 }
 
@@ -186,9 +185,6 @@ function save_toggles(tasks) {
 
 async function reload() {
     let toggles = save_toggles(global_tasks);
-    document.getElementById('task-list').innerHTML = '';
-    // Wait 100ms
-    await new Promise(r => setTimeout(r, 100));
     fetch('http://localhost:8080/tasks', {
         method: 'GET',
         headers: {
@@ -197,6 +193,7 @@ async function reload() {
         },
     }).then(response => response.json())
         .then(data => {
+            document.getElementById('task-list').innerHTML = '';
             global_tasks = parse_task_tree(data);
             for (let i = 0; i < global_tasks.length; i++) {
                 let html = global_tasks[i].html();
@@ -262,9 +259,9 @@ function complete_task(task_id) {
                 },
                 // body: JSON.stringify({name: name, parent_id: parent_id})
                 body: JSON.stringify({ id: task_id, action: "stop", summary: summary_path })
-            }).then(data => {
+            }).then(async data => {
                 console.log(data);
-                reload();
+                await reload();
             });
         } else {
             summary_path = summary_dialogue.returnValue;
@@ -276,15 +273,15 @@ function complete_task(task_id) {
                 },
                 // body: JSON.stringify({name: name, parent_id: parent_id})
                 body: JSON.stringify({ id: task_id, action: "stop", summary: summary_path })
-            }).then(data => {
+            }).then(async data => {
                 console.log(data);
-                reload();
+                await reload();
             });
         }
     });
 
 }
 
-window.onload = function () {
-    reload();
+window.onload = async function () {
+    await reload();
 };
