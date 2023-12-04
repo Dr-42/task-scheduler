@@ -125,6 +125,26 @@ function parse_task_tree(task_datas) {
     return task_tree;
 }
 
+function add_task() {
+    let name = prompt("Task name:");
+    if (name === null) {
+        return;
+    }
+    // post
+    fetch('http://localhost:8080/addtask', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ name: name, parent: null })
+    }).then(async data => {
+        console.log(data);
+        await reload();
+    });
+}
+
+
 function add_child_task(parent_id) {
     let name = prompt("Task name:");
     if (name === null) {
@@ -137,7 +157,6 @@ function add_child_task(parent_id) {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'
         },
-        // body: JSON.stringify({name: name, parent_id: parent_id})
         body: JSON.stringify({ name: name, parent: parent_id })
     }).then(async data => {
         console.log(data);
