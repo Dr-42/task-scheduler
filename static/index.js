@@ -50,6 +50,7 @@ class Task {
         let html = '<div class="task">';
         html += '<li>';
         html += '<div class="task-name">'
+        html += '<div class="task-title">';
         if (this.children.length !== 0) {
             html += '<span class="caret" id="' + this.id + '">';
             html += this.icon() + ' ' + this.name;
@@ -59,7 +60,20 @@ class Task {
             html += this.icon() + ' ' + this.name;
             html += '</span>'
         }
-        html += '<div>'
+        if (this.end_time !== null) {
+            html += '<div class="end-time">';
+            html += 'Finished at: '
+            html += this.end_time.text();
+            html += '</div>';
+        } else if (this.start_time !== null) {
+            html += '<div class="start-time">';
+            html += 'Started at: '
+            html += this.start_time.text();
+            html += '</div>';
+        }
+        html += '</div>';
+
+        html += '<div class="side-buttons">'
         if (this.status === 'InProgress') {
             html += '<button onclick=complete_task(' + this.id + ')>⇉</button>';
         } else if (this.status === 'Complete') {
@@ -69,7 +83,7 @@ class Task {
         }
 
         if (this.summary !== null) {
-            html += '<a href="' + this.summary + '">📄</a>';
+            html += '<button onclick=location.href="' + this.summary + '">📄</a>';
         }
 
         html += '<button onclick=add_child_task(' + this.id + ')>+</button>';
@@ -174,7 +188,7 @@ function enable_toggles() {
 
     for (i = 0; i < toggler.length; i++) {
         toggler[i].addEventListener("click", function () {
-            this.parentElement.parentElement.querySelector(".nested").classList.toggle("active");
+            this.parentElement.parentElement.parentElement.querySelector(".nested").classList.toggle("active");
             this.classList.toggle("caret-down");
         });
     }
@@ -183,7 +197,7 @@ function enable_toggles() {
 function restore_toggles(toggles) {
     for (let i = 0; i < toggles.length; i++) {
         let element = document.getElementById(toggles[i].toString());
-        element.parentElement.parentElement.querySelector(".nested").classList.add("active");
+        element.parentElement.parentElement.parentElement.querySelector(".nested").classList.add("active");
         element.classList.add("caret-down");
     }
 }
