@@ -16,7 +16,7 @@ impl App {
     }
 
     pub fn save(&self) -> Result<()> {
-        let serialized = serde_json::to_string(self)?;
+        let serialized = serde_json::to_string_pretty(self)?;
         std::fs::write("data.json", serialized)?;
         Ok(())
     }

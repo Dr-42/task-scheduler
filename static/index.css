@@ -49,3 +49,24 @@ ul,
     display: block;
     margin: 0;
 }
+
+.start-time {
+    font-size: xx-small;
+    color: #f29913;
+    border: 1px solid #f29913;
+    margin: 8px;
+}
+
+.end-time {
+    font-size: xx-small;
+    color: #13f213;
+    border: 1px solid #13f213;
+    margin: 8px;
+}
+
+.no-time {
+    font-size: xx-small;
+    color: #f21313;
+    border: 1px solid #f21313;
+    margin: 8px;
+}

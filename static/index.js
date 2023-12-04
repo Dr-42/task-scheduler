@@ -1,8 +1,33 @@
+class Time {
+    year;
+    month;
+    day;
+    hour;
+    minute;
+    second;
+
+    constructor(year, month, day, hour, minute, second) {
+        this.year = year;
+        this.month = month;
+        this.day = day;
+        this.hour = hour;
+        this.minute = minute;
+        this.second = second;
+    }
+
+    text() {
+        return this.year + '-' + this.month + '-' + this.day + ' ' + this.hour + ':' + this.minute + ':' + this.second;
+    }
+}
+
 class Task {
-    constructor(name, status, parent_id) {
+    constructor(id, name, status, parent_id, start_time, end_time) {
+        this.id = id;
         this.name = name;
         this.status = status;
         this.parent_id = parent_id;
+        this.start_time = start_time;
+        this.end_time = end_time;
         this.children = [];
     }
 
@@ -19,6 +44,39 @@ class Task {
             return '🟡';
         }
     }
+
+    html() {
+        let html = '<div class="task">';
+        html += '<li>';
+        if (this.children.length !== 0) {
+            html += '<span class="caret" id="' + this.id + '">';
+            html += this.icon() + ' ' + this.name;
+            html += '</span>'
+        } else {
+            html += '<span class="empty-caret">';
+            html += this.icon() + ' ' + this.name;
+            html += '</span>'
+        }
+        if (this.status === 'InProgress') {
+            html += '<button onclick=complete_task(' + this.id + ')>✅</button>';
+        } else if (this.status === 'Complete') {
+            html += ' '
+        } else if (this.status === 'Incomplete') {
+            html += '<button onclick=start_task(' + this.id + ')>🔴</button>';
+        }
+        html += '<button onclick=add_child_task(' + this.id + ')>+</button>';
+
+
+        if (this.children.length !== 0) {
+            html += '<ul class="nested">';
+            for (let i = 0; i < this.children.length; i++) {
+                html += this.children[i].html();
+            }
+            html += '</ul>';
+        }
+        html += '</li></div>';
+        return html;
+    }
 }
 
 let global_tasks = [];
@@ -33,7 +91,15 @@ function parse_task_tree(task_datas) {
     let tasks = [];
     for (let i = 0; i < task_datas.length; i++) {
         let task_data = task_datas[i];
-        let task = new Task(task_data.name, task_data.status, task_data.parent_id);
+        let start_time = null;
+        let end_time = null;
+        if (task_data.start_time !== null) {
+            start_time = new Time(task_data.start_time.year, task_data.start_time.month, task_data.start_time.day, task_data.start_time.hour, task_data.start_time.minute, task_data.start_time.second);
+        }
+        if (task_data.end_time !== null) {
+            end_time = new Time(task_data.end_time.year, task_data.end_time.month, task_data.end_time.day, task_data.end_time.hour, task_data.end_time.minute, task_data.end_time.second);
+        }
+        let task = new Task(task_data.id, task_data.name, task_data.status, task_data.parent_id, start_time, end_time);
         task_map[task_data.id] = task;
         tasks.push(task);
     }
@@ -53,25 +119,25 @@ function parse_task_tree(task_datas) {
     return task_tree;
 }
 
-function task_html(task) {
-    let html = '<div class="task">';
-    html += '<li>';
-    if (task.children.length !== 0) {
-        html += '<span class="caret">';
-        html += task.icon() + ' ' + task.name;
-        html += '</span>'
-        html += '<ul class="nested">';
-        for (let i = 0; i < task.children.length; i++) {
-            html += task_html(task.children[i]);
-        }
-        html += '</ul>';
-    } else {
-        html += '<span class="empty-caret">';
-        html += task.icon() + ' ' + task.name;
-        html += '</span>'
+
+function add_child_task(parent_id) {
+    let name = prompt("Task name:");
+    if (name === null) {
+        return;
     }
-    html += '</li></div>';
-    return html;
+    // post
+    fetch('http://localhost:8080/addtask', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        // body: JSON.stringify({name: name, parent_id: parent_id})
+        body: JSON.stringify({ name: name, parent: parent_id })
+    }).then(data => {
+        console.log(data);
+        reload();
+    });
 }
 
 function enable_toggles() {
@@ -86,9 +152,37 @@ function enable_toggles() {
     }
 }
 
+function restore_toggles(toggles) {
+    for (let i = 0; i < toggles.length; i++) {
+        let element = document.getElementById(toggles[i].toString());
+        element.parentElement.querySelector(".nested").classList.add("active");
+        element.classList.add("caret-down");
+    }
+}
 
-window.onload = function () {
-    // Allow CORS
+function save_toggles(tasks) {
+    let toggles = [];
+    for (let i = 0; i < tasks.length; i++) {
+        let task = tasks[i];
+        let toggler = document.getElementById(task.id.toString());
+        if (toggler !== null) {
+            if (toggler.classList.contains("caret-down")) {
+                toggles.push(task.id);
+            }
+        }
+        if (task.children.length !== 0) {
+            let child_toggles = save_toggles(task.children);
+            toggles = toggles.concat(child_toggles);
+        }
+    }
+    return toggles;
+}
+
+async function reload() {
+    let toggles = save_toggles(global_tasks);
+    document.getElementById('task-list').innerHTML = '';
+    // Wait 100ms
+    await new Promise(r => setTimeout(r, 100));
     fetch('http://localhost:8080/tasks', {
         method: 'GET',
         headers: {
@@ -99,9 +193,16 @@ window.onload = function () {
         .then(data => {
             global_tasks = parse_task_tree(data);
             for (let i = 0; i < global_tasks.length; i++) {
-                let html = task_html(global_tasks[i]);
+                let html = global_tasks[i].html();
                 document.getElementById('task-list').innerHTML += html;
             }
             enable_toggles();
+            restore_toggles(toggles);
+            toggles = [];
         });
+}
+
+
+window.onload = function () {
+    reload();
 };
