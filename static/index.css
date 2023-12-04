@@ -1,5 +1,16 @@
 body {
     font-size: larger;
+    background-color: #181818;
+    color: #fefebe;
+    margin: auto;
+    width: 70%;
+}
+
+/* on large screen 30% of the screen width */
+@media screen and (min-width: 800px) {
+    body {
+        width: 30%;
+    }
 }
 
 ul,
@@ -12,6 +23,16 @@ ul,
     padding: 0;
 }
 
+li {
+    margin: 3%;
+    padding: 0;
+    background-color: #02233188;
+    border: 2px solid #0fed079a;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+}
+
 .caret {
     cursor: pointer;
     user-select: none;
@@ -20,7 +41,7 @@ ul,
 
 .caret::before {
     content: "\25B6";
-    color: black;
+    color: #fefeee;
     display: inline-block;
     margin-right: 6px;
 }
@@ -36,7 +57,7 @@ ul,
 
 .empty-caret::before {
     content: "\25B7";
-    color: black;
+    color: #fefeee;
     display: inline-block;
     margin-right: 6px;
 }
@@ -69,4 +90,47 @@ ul,
     color: #f21313;
     border: 1px solid #f21313;
     margin: 8px;
+}
+
+#top {
+    margin: 0;
+    padding: 0;
+    background-color: #181818;
+    border: 0;
+    border-radius: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+button {
+    border: 1px solid #ddd;
+    background-color: #032f05;
+    padding: 4px 12px;
+    color: #fefeee;
+    border-radius: 30%;
+
+    -o-transition: background-color .2s ease-in;
+    -moz-transition: background-color .2s ease-in;
+    -webkit-transition: background-color .2s ease-in;
+    transition: background-color .2s ease-in;
+}
+
+button:hover {
+    background-color: #e5e5e5;
+    color: #032f05;
+}
+
+.task-name {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+dialog {
+    background-color: #181818;
+    color: #fefebe;
+    border: 2px solid #0fed079a;
+    border-radius: 5px;
+    padding: 8px;
 }

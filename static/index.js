@@ -49,6 +49,7 @@ class Task {
     html() {
         let html = '<div class="task">';
         html += '<li>';
+        html += '<div class="task-name">'
         if (this.children.length !== 0) {
             html += '<span class="caret" id="' + this.id + '">';
             html += this.icon() + ' ' + this.name;
@@ -58,6 +59,7 @@ class Task {
             html += this.icon() + ' ' + this.name;
             html += '</span>'
         }
+        html += '<div>'
         if (this.status === 'InProgress') {
             html += '<button onclick=complete_task(' + this.id + ')>⇉</button>';
         } else if (this.status === 'Complete') {
@@ -71,14 +73,16 @@ class Task {
         }
 
         html += '<button onclick=add_child_task(' + this.id + ')>+</button>';
-
-
+        html += '</div>';
+        html += '</div>';
         if (this.children.length !== 0) {
+            html += '<div class="task-children">';
             html += '<ul class="nested">';
             for (let i = 0; i < this.children.length; i++) {
                 html += this.children[i].html();
             }
             html += '</ul>';
+            html += '</div>';
         }
         html += '</li></div>';
         return html;
@@ -170,7 +174,7 @@ function enable_toggles() {
 
     for (i = 0; i < toggler.length; i++) {
         toggler[i].addEventListener("click", function () {
-            this.parentElement.querySelector(".nested").classList.toggle("active");
+            this.parentElement.parentElement.querySelector(".nested").classList.toggle("active");
             this.classList.toggle("caret-down");
         });
     }
@@ -179,7 +183,7 @@ function enable_toggles() {
 function restore_toggles(toggles) {
     for (let i = 0; i < toggles.length; i++) {
         let element = document.getElementById(toggles[i].toString());
-        element.parentElement.querySelector(".nested").classList.add("active");
+        element.parentElement.parentElement.querySelector(".nested").classList.add("active");
         element.classList.add("caret-down");
     }
 }
