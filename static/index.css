@@ -188,6 +188,10 @@ dialog {
     padding: 8px;
 }
 
+dialog::backdrop {
+    backdrop-filter: blur(20px);
+}
+
 @media (orientation:landscape) {
     #summary-view {
         font-size: 3vh;

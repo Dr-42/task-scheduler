@@ -364,6 +364,7 @@ async function show_summary(summary) {
         close_button.onclick = function() {
             summary_dialogue.close();
         }
+        hljs.highlightAll();
         summary_dialogue.showModal();
     });
 }
