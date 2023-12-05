@@ -187,3 +187,21 @@ dialog {
     border-radius: 5px;
     padding: 8px;
 }
+
+@media (orientation:landscape) {
+    #summary-view {
+        font-size: 3vh;
+    }
+}
+
+@media (orientation:portrait) {
+    #summary-view {
+        font-size: 3vw;
+    }
+}
+
+#summary-close-container {
+    position: fixed;
+    right:    15px;
+    top:      15px;
+}

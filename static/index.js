@@ -84,7 +84,7 @@ class Task {
         }
 
         if (this.summary !== null) {
-            html += '<button onclick=location.href="' + this.summary + '">📄</a>';
+            html += '<button onclick=show_summary("' + this.summary + '")>📄</a>';
         }
 
         html += '<button onclick=add_child_task(' + this.id + ')>+</button>';
@@ -345,6 +345,26 @@ function rename_task(task_id) {
     }).then(async data => {
         console.log(data);
         await reload();
+    });
+}
+
+async function show_summary(summary) {
+    let summary_dialogue = document.getElementById('summary-view');
+    let summary_text = document.getElementById('summary-content');
+    fetch(`http://${global_ip}/${summary}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'text/html',
+            'Access-Control-Allow-Origin': '*'
+        },
+    }).then(async response => {
+        console.log(response);
+        summary_text.innerHTML = await response.text();
+        let close_button = document.getElementById('summary-close');
+        close_button.onclick = function() {
+            summary_dialogue.close();
+        }
+        summary_dialogue.showModal();
     });
 }
 
