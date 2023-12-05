@@ -3,7 +3,7 @@ use std::{fmt::Display, path::Path};
 
 use crate::time::Time;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub enum TaskStaus {
     Incomplete,
     InProgress,

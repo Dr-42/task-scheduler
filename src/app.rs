@@ -1,4 +1,7 @@
-use crate::{task::Task, Result};
+use crate::{
+    task::{Task, TaskStaus},
+    Result,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -48,6 +51,17 @@ impl App {
             .find(|task| task.get_id() == id)
             .ok_or("Task not found")?;
         task.start();
+        if task.get_parent_id().is_some() {
+            let parent_id = task.get_parent_id().unwrap();
+            let parent = self
+                .tasks
+                .iter_mut()
+                .find(|task| task.get_id() == parent_id)
+                .ok_or("Task not found")?;
+            if parent.get_status() == &TaskStaus::Incomplete {
+                self.start_task(parent_id)?;
+            }
+        }
         Ok(())
     }
 
