@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
         .route("/", get(index))
         .route("/index.js", get(get_js))
         .route("/index.css", get(get_css))
-        .route("/favicon.ico", get(get_favicon))
+        .route("/favicon.png", get(get_favicon))
         .route("/tasks", get(get_tasks))
         .route("/modifytask", post(modify_task))
         .route("/addtask", post(add_task))
@@ -196,7 +196,7 @@ async fn get_css() -> impl IntoResponse {
 
 async fn get_favicon() -> impl IntoResponse {
     let m = "image/x-icon";
-    let body = include_bytes!("../static/favicon.ico").to_vec();
+    let body = include_bytes!("../static/favicon.png").to_vec();
     Response::builder()
         .status(StatusCode::OK)
         .header(
