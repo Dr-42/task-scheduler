@@ -261,11 +261,16 @@ function start_task(task_id) {
 }
 
 function dialogue_setup(summary_dialogue) {
-    let nosum_button = document.getElementById('nosum');
-    let submit_summary_button = document.getElementById('submit');
+    let nosum_button = document.getElementById('No summary');
+    let submit_summary_button = document.getElementById('Submit');
+    let cancel_button = document.getElementById('Cancel');
 
     nosum_button.onclick = function() {
         summary_dialogue.close('nosum');
+    }
+
+    cancel_button.onclick = function() {
+        summary_dialogue.close('cancel');
     }
 
     submit_summary_button.onclick = function() {
@@ -303,6 +308,8 @@ function complete_task(task_id) {
                 console.log(data);
                 await reload();
             });
+        } else if (summary_dialogue.returnValue === 'cancel') {
+            // Do nothing
         } else {
             summary_path = summary_dialogue.returnValue;
             fetch(`http://${global_ip}/modifytask`, {
