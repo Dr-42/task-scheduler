@@ -43,6 +43,7 @@ async fn main() -> Result<()> {
         .route("/tasks", get(get_tasks))
         .route("/modifytask", post(modify_task))
         .route("/addtask", post(add_task))
+        .route("/renametask", post(rename_task))
         .route("/summaries/:key", get(get_summaries))
         .layer(CorsLayer::permissive());
     let router_service = routes.into_make_service();
@@ -108,6 +109,25 @@ async fn add_task(body: Json<AddTask>) -> impl IntoResponse {
     }
     state.save().await.unwrap();
     println!("Added task {}", name);
+    Response::builder()
+        .status(StatusCode::OK)
+        .body("".to_string())
+        .unwrap()
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct RenameTask {
+    id: u64,
+    name: String,
+}
+
+async fn rename_task(body: Json<RenameTask>) -> impl IntoResponse {
+    let mut state = App::load().await.unwrap();
+    let id = body.id;
+    let name = &body.name;
+    state.rename_task(id, name.to_string()).unwrap();
+    state.save().await.unwrap();
+    println!("Renamed task {} to {}", id, name);
     Response::builder()
         .status(StatusCode::OK)
         .body("".to_string())

@@ -64,6 +64,10 @@ impl Task {
         }
     }
 
+    pub fn rename(&mut self, name: String) {
+        self.name = name;
+    }
+
     pub fn get_id(&self) -> u64 {
         self.id
     }

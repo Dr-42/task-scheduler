@@ -75,6 +75,16 @@ impl App {
         Ok(())
     }
 
+    pub fn rename_task(&mut self, id: u64, name: String) -> Result<()> {
+        let task = self
+            .tasks
+            .iter_mut()
+            .find(|task| task.get_id() == id)
+            .ok_or("Task not found")?;
+        task.rename(name);
+        Ok(())
+    }
+
     pub fn get_tasks(&self) -> &Vec<Task> {
         &self.tasks
     }

@@ -74,6 +74,7 @@ class Task {
         html += '</div>';
 
         html += '<div class="side-buttons">'
+        html += '<button onclick=rename_task(' + this.id + ')>✎</button>';
         if (this.status === 'InProgress') {
             html += '<button onclick=complete_task(' + this.id + ')>⇉</button>';
         } else if (this.status === 'Complete') {
@@ -187,7 +188,7 @@ function enable_toggles() {
     var i;
 
     for (i = 0; i < toggler.length; i++) {
-        toggler[i].addEventListener("click", function () {
+        toggler[i].addEventListener("click", function() {
             this.parentElement.parentElement.parentElement.querySelector(".nested").classList.toggle("active");
             this.classList.toggle("caret-down");
         });
@@ -263,18 +264,18 @@ function dialogue_setup(summary_dialogue) {
     let nosum_button = document.getElementById('nosum');
     let submit_summary_button = document.getElementById('submit');
 
-    nosum_button.onclick = function () {
+    nosum_button.onclick = function() {
         summary_dialogue.close('nosum');
     }
 
-    submit_summary_button.onclick = function () {
+    submit_summary_button.onclick = function() {
         let summary_file = document.getElementById('summary-file').files[0];
         var reader = new FileReader;
         reader.readAsText(summary_file, "UTF-8");
-        reader.onload = function (evt) {
+        reader.onload = function(evt) {
             summary_dialogue.close(evt.target.result);
         }
-        reader.onerror = function (evt) {
+        reader.onerror = function(evt) {
             summary_dialogue.close(null);
         }
     }
@@ -321,6 +322,25 @@ function complete_task(task_id) {
 
 }
 
-window.onload = async function () {
+function rename_task(task_id) {
+    let name = prompt("New name:");
+    if (name === null) {
+        return;
+    }
+    // post
+    fetch(`http://${global_ip}/renametask`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ id: task_id, name: name })
+    }).then(async data => {
+        console.log(data);
+        await reload();
+    });
+}
+
+window.onload = async function() {
     await reload();
 };
