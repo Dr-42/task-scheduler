@@ -171,7 +171,7 @@ button {
 
 button:hover {
     background-color: #e5e5e5;
-    color: #13db1d;
+    color: #035b5d;
 }
 
 .task-name {
@@ -186,10 +186,49 @@ dialog {
     border: 2px solid #0fed07;
     border-radius: 5px;
     padding: 8px;
+    input {
+        background-color: #181818;
+        color: #fefebe;
+        border: 2px solid #0fed07;
+        border-radius: 5px;
+        padding: 8px;
+    }
+    input:hover {
+        background-color: #e5e5e5;
+        color: #035b5d;
+    }
 }
 
 dialog::backdrop {
     backdrop-filter: blur(20px);
+}
+
+@media (orientation:landscape) {
+    dialog {
+        font-size: 3vh;
+        button {
+            font-size: 3vh;
+            height: 5vh;
+            width: 5vh;
+        }
+        input {
+            box-shadow: 0px 1vh 2vh 0px rgba(255, 0, 255, 0.7);
+        }
+    }
+}
+
+@media (orientation:portrait) {
+    dialog {
+        font-size: 3vw;
+        button {
+            font-size: 3vw;
+            height: 5vw;
+            width: 5vw;
+        }
+        input {
+            box-shadow: 0px 1vw 2vw 0px rgba(255, 0, 255, 0.7);
+        }
+    }
 }
 
 @media (orientation:landscape) {

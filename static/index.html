@@ -15,6 +15,26 @@
 <body>
 	<h1>Tasks Todo</h1>
 	<button id="add-task" onclick="add_task()">+</button>
+	<dialog id="new-task">
+		<p>Please enter the task name</p>
+		<div>
+			<input type="text" id="new-task-name">
+		</div>
+		<div>
+			<button id="new-task-submit">✓</button>
+			<button id="new-task-cancel">✖</button>
+		</div>
+	</dialog>
+	<dialog id="rename-task">
+		<p>Please enter the new task name</p>
+		<div>
+			<input type="text" id="rename-task-name">
+		</div>
+		<div>
+			<button id="rename-task-submit">✓</button>
+			<button id="rename-task-cancel">✖</button>
+		</div>
+	</dialog>
 	<dialog id="summary-dialogue">
 		<p>Please select the summary file</p>
 		<input type="file" id="summary-file" accept=".md">

@@ -105,6 +105,7 @@ class Task {
 }
 
 let global_tasks = [];
+let global_task_array = [];
 
 // Parse task tree
 function parse_task_tree(task_datas) {
@@ -141,46 +142,73 @@ function parse_task_tree(task_datas) {
     }
 
     // Return the task tree
-    return task_tree;
+    return { tasks, task_tree };
 }
 
 function add_task() {
-    let name = prompt("Task name:");
-    if (name === null) {
-        return;
+    let new_task_dialogue = document.getElementById('new-task');
+    let input_text = document.getElementById('new-task-name');
+    let submit_button = document.getElementById('new-task-submit');
+    let cancel_button = document.getElementById('new-task-cancel');
+    new_task_dialogue.showModal();
+    submit_button.onclick = function() {
+        let name = input_text.value;
+        if (name === null) {
+            return;
+        }
+        // post
+        fetch(`http://${global_ip}/addtask`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({ name: name, parent: null })
+        }).then(async data => {
+            console.log(data);
+            new_task_dialogue.close();
+            input_text.value = '';
+            await reload();
+        });
     }
-    // post
-    fetch(`http://${global_ip}/addtask`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({ name: name, parent: null })
-    }).then(async data => {
-        console.log(data);
-        await reload();
-    });
+    cancel_button.onclick = function() {
+        input_text.value = '';
+        new_task_dialogue.close();
+    }
 }
 
 
 function add_child_task(parent_id) {
-    let name = prompt("Task name:");
-    if (name === null) {
-        return;
+    let new_task_dialogue = document.getElementById('new-task');
+    let input_text = document.getElementById('new-task-name');
+    let submit_button = document.getElementById('new-task-submit');
+    let cancel_button = document.getElementById('new-task-cancel');
+    new_task_dialogue.showModal();
+    submit_button.onclick = function() {
+        let name = input_text.value;
+        if (name === null) {
+            return;
+        }
+        // post
+        fetch(`http://${global_ip}/addtask`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({ name: name, parent: parent_id })
+        }).then(async data => {
+            console.log(data);
+            new_task_dialogue.close();
+            input_text.value = '';
+            await reload();
+        });
     }
-    // post
-    fetch(`http://${global_ip}/addtask`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({ name: name, parent: parent_id })
-    }).then(async data => {
-        console.log(data);
-        await reload();
-    });
+
+    cancel_button.onclick = function() {
+        input_text.value = '';
+        new_task_dialogue.close();
+    }
 }
 
 function enable_toggles() {
@@ -234,7 +262,9 @@ async function reload() {
     }).then(response => response.json())
         .then(data => {
             document.getElementById('task-list').innerHTML = '';
-            global_tasks = parse_task_tree(data);
+            let globals = parse_task_tree(data);
+            global_task_array = globals.tasks;
+            global_tasks = globals.task_tree;
             for (let i = 0; i < global_tasks.length; i++) {
                 let html = global_tasks[i].html();
                 document.getElementById('task-list').innerHTML += html;
@@ -260,7 +290,7 @@ function start_task(task_id) {
     });
 }
 
-function dialogue_setup(summary_dialogue) {
+function summary_dialogue_setup(summary_dialogue) {
     let nosum_button = document.getElementById('No summary');
     let submit_summary_button = document.getElementById('Submit');
     let cancel_button = document.getElementById('Cancel');
@@ -280,7 +310,7 @@ function dialogue_setup(summary_dialogue) {
         reader.onload = function(evt) {
             summary_dialogue.close(evt.target.result);
         }
-        reader.onerror = function(evt) {
+        reader.onerror = function() {
             summary_dialogue.close(null);
         }
     }
@@ -290,7 +320,7 @@ function complete_task(task_id) {
     // Dialogue to fetch the summary file. Can be blank
     let summary_dialogue = document.getElementById('summary-dialogue');
     summary_dialogue.showModal();
-    dialogue_setup(summary_dialogue);
+    summary_dialogue_setup(summary_dialogue);
 
     summary_dialogue.addEventListener('close', function onClose() {
         console.log(summary_dialogue.returnValue);
@@ -330,22 +360,40 @@ function complete_task(task_id) {
 }
 
 function rename_task(task_id) {
-    let name = prompt("New name:");
-    if (name === null) {
-        return;
+    let rename_task_dialogue = document.getElementById('rename-task');
+    let input_text = document.getElementById('rename-task-name');
+    let submit_button = document.getElementById('rename-task-submit');
+    let cancel_button = document.getElementById('rename-task-cancel');
+    // Set input text to previous name
+    for (let i = 0; i < global_task_array.length; i++) {
+        if (global_task_array[i].id === task_id) {
+            input_text.value = global_task_array[i].name;
+            break;
+        }
     }
-    // post
-    fetch(`http://${global_ip}/renametask`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({ id: task_id, name: name })
-    }).then(async data => {
-        console.log(data);
-        await reload();
-    });
+    rename_task_dialogue.showModal();
+    submit_button.onclick = function() {
+        let name = input_text.value;
+        if (name === null) {
+            return;
+        }
+        // post
+        fetch(`http://${global_ip}/renametask`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({ id: task_id, name: name })
+        }).then(async data => {
+            console.log(data);
+            rename_task_dialogue.close();
+            await reload();
+        });
+    }
+    cancel_button.onclick = function() {
+        rename_task_dialogue.close();
+    }
 }
 
 async function show_summary(summary) {
