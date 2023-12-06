@@ -371,11 +371,13 @@ function complete_task(task_id) {
                             return new Promise((resolve, reject) => {
                                 let image = document.getElementById('image_req_' + i).files[0];
                                 let reader = new FileReader();
-                                reader.readAsBinaryString(image);
+                                reader.readAsDataURL(image);
                                 reader.onload = function(evt) {
                                     let image_data = {
+                                        id: task_id,
                                         name: image_names[i],
                                         data: evt.target.result,
+                                        extension: image.name.split('.').pop()
                                     };
                                     image_datas.push(image_data);
                                     resolve();

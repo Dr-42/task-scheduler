@@ -1,6 +1,7 @@
 use app::App;
 use axum::{
     body::{self, Full},
+    extract::DefaultBodyLimit,
     http::{header, Response, StatusCode},
     response::{Html, IntoResponse},
     routing::{get, post},
@@ -46,7 +47,8 @@ async fn main() -> Result<()> {
         .route("/renametask", post(rename_task))
         .route("/summaries/:key", get(get_summaries))
         .route("/uploadimages", post(upload_images))
-        .layer(CorsLayer::permissive());
+        .layer(CorsLayer::permissive())
+        .layer(DefaultBodyLimit::max(1024 * 1024 * 1024));
     let router_service = routes.into_make_service();
     axum::Server::bind(&ip.parse()?)
         .serve(router_service)
@@ -176,11 +178,28 @@ async fn get_summaries(axum::extract::Path(key): axum::extract::Path<String>) ->
 
 #[derive(Deserialize, Serialize, Debug)]
 struct UploadImages {
+    id: u64,
     name: String,
     data: String,
+    extension: String,
 }
 
 async fn upload_images(body: Json<Vec<UploadImages>>) -> impl IntoResponse {
+    if !Path::new("images").exists() {
+        async_fs::create_dir("images").await.unwrap();
+    }
+    for image in body.iter() {
+        let data = &image.data;
+        //let data = base64::decode(data).unwrap();
+        let data = data.split(',').nth(1).unwrap();
+        // Decode Base64 data
+        use base64::{engine::general_purpose, Engine as _};
+
+        let bytes = general_purpose::STANDARD.decode(data).unwrap();
+        let name = format!("images/{}_{}.{}", image.id, image.name, image.extension);
+
+        async_fs::write(name, bytes).await.unwrap();
+    }
     Response::builder()
         .status(StatusCode::OK)
         .body("".to_string())
