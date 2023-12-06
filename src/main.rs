@@ -45,6 +45,7 @@ async fn main() -> Result<()> {
         .route("/addtask", post(add_task))
         .route("/renametask", post(rename_task))
         .route("/summaries/:key", get(get_summaries))
+        .route("/uploadimages", post(upload_images))
         .layer(CorsLayer::permissive());
     let router_service = routes.into_make_service();
     axum::Server::bind(&ip.parse()?)
@@ -73,12 +74,27 @@ async fn modify_task(body: Json<PostTask>) -> impl IntoResponse {
         .find(|t| t.get_id() == body.id)
         .unwrap()
         .get_id();
+    println!("{} {}", body.id, body.action);
     match body.action.as_str() {
         "start" => {
             state.start_task(task).unwrap();
         }
         "stop" => {
-            state.stop_task(task, body.summary.clone()).await.unwrap();
+            let images = state.stop_task(task, body.summary.clone()).await.unwrap();
+            println!("{:?}", images);
+            if images.is_some() {
+                let images = images.unwrap();
+                return Response::builder()
+                    .status(StatusCode::IM_A_TEAPOT)
+                    .body(
+                        images
+                            .keys()
+                            .map(|k| k.to_string())
+                            .collect::<Vec<String>>()
+                            .join("\n"),
+                    )
+                    .unwrap();
+            }
         }
         _ => {}
     }
@@ -156,6 +172,19 @@ async fn get_summaries(axum::extract::Path(key): axum::extract::Path<String>) ->
                 .unwrap()
         }
     }
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct UploadImages {
+    name: String,
+    data: String,
+}
+
+async fn upload_images(body: Json<Vec<UploadImages>>) -> impl IntoResponse {
+    Response::builder()
+        .status(StatusCode::OK)
+        .body("".to_string())
+        .unwrap()
 }
 
 async fn index() -> Html<String> {

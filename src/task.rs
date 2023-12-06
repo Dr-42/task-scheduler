@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, path::Path};
+use std::{collections::HashMap, fmt::Display, path::Path};
 
 use crate::time::Time;
 
@@ -49,19 +49,50 @@ impl Task {
         self.start_time = Some(Time::now());
     }
 
-    pub async fn stop(&mut self, summary: Option<String>) {
+    async fn get_images(&self, summary: &str) -> HashMap<String, String> {
+        println!("Getting images");
+        let mut images = HashMap::new();
+        for line in summary.lines() {
+            if line.contains("![") {
+                let mut split = line.split("](");
+                let image = split.next().unwrap().split('[').nth(1).unwrap();
+                let path = split.next().unwrap().split(')').next().unwrap();
+                if path.starts_with("http") {
+                    continue;
+                }
+                images.insert(image.to_string(), path.to_string());
+                println!("{} {}", image, path);
+            }
+        }
+        images
+    }
+
+    pub async fn stop(&mut self, summary: Option<String>) -> Option<HashMap<String, String>> {
         self.status = TaskStaus::Complete;
         self.end_time = Some(Time::now());
         if let Some(summary) = summary {
             if !Path::exists(Path::new("summaries")) {
                 async_fs::create_dir("summaries").await.unwrap();
             }
+
+            let summary_images = self.get_images(&summary).await;
+            if !summary_images.is_empty() {
+                if !Path::exists(Path::new("temp")) {
+                    async_fs::create_dir("temp").await.unwrap();
+                }
+                let temp_md = format!("temp/{}.md", self.id);
+                async_fs::write(&temp_md, summary).await.unwrap();
+                return Some(summary_images);
+            }
+
             let summary_text = markdown::to_html(&summary);
             async_fs::write(format!("summaries/{}.html", self.id), summary_text)
                 .await
                 .unwrap();
             self.summary = Some(format!("summaries/{}.html", self.id));
+            return None;
         }
+        None
     }
 
     pub fn rename(&mut self, name: String) {

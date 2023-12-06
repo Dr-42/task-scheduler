@@ -351,7 +351,60 @@ function complete_task(task_id) {
                 // body: JSON.stringify({name: name, parent_id: parent_id})
                 body: JSON.stringify({ id: task_id, action: "stop", summary: summary_path })
             }).then(async data => {
-                console.log(data);
+                if (data.status === 418) {
+                    let image_names_flat = await data.text();
+                    console.log(image_names_flat);
+                    let image_names = image_names_flat.split(',');
+                    let image_dialogue = document.getElementById('images-dialogue');
+                    image_dialogue.innerHTML = '';
+                    image_dialogue.innerHTML += '<p>Some images are on your local path. Please upload them</p>'
+                    for (let i = 0; i < image_names.length; i++) {
+                        if (image_names[i] !== '') {
+                            image_dialogue.innerHTML += '<input type="file" id="image_req_' + i + '">';
+                        }
+                    }
+                    image_dialogue.innerHTML += '<button id="images-submit">✓</button>';
+                    let submit_button = document.getElementById('images-submit');
+                    submit_button.onclick = async function() {
+                        let image_datas = [];
+                        const readImageAsync = (i) => {
+                            return new Promise((resolve, reject) => {
+                                let image = document.getElementById('image_req_' + i).files[0];
+                                let reader = new FileReader();
+                                reader.readAsBinaryString(image);
+                                reader.onload = function(evt) {
+                                    let image_data = {
+                                        name: image_names[i],
+                                        data: evt.target.result,
+                                    };
+                                    image_datas.push(image_data);
+                                    resolve();
+                                }
+                                reader.onerror = function(error) {
+                                    reject(error);
+                                }
+                            });
+                        };
+                        for (let i = 0; i < image_names.length; i++) {
+                            await readImageAsync(i);
+                        }
+                        let data = JSON.stringify(image_datas);
+                        console.log(data);
+                        fetch(`http://${global_ip}/uploadimages`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Access-Control-Allow-Origin': '*'
+                            },
+                            body: data
+                        }).then(async data => {
+                            console.log(data);
+                            image_dialogue.close();
+                            await reload();
+                        });
+                    }
+                    image_dialogue.showModal();
+                }
                 await reload();
             });
         }

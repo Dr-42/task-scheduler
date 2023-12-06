@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     task::{Task, TaskStaus},
     Result,
@@ -65,14 +67,19 @@ impl App {
         Ok(())
     }
 
-    pub async fn stop_task(&mut self, id: u64, summary: Option<String>) -> Result<()> {
+    pub async fn stop_task(
+        &mut self,
+        id: u64,
+        summary: Option<String>,
+    ) -> Result<Option<HashMap<String, String>>> {
         let task = self
             .tasks
             .iter_mut()
             .find(|task| task.get_id() == id)
             .ok_or("Task not found")?;
-        task.stop(summary).await;
-        Ok(())
+        let images = task.stop(summary).await;
+        println!("{:?}", images);
+        Ok(images)
     }
 
     pub fn rename_task(&mut self, id: u64, name: String) -> Result<()> {
