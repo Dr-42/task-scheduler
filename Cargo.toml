@@ -20,3 +20,4 @@ tower-http = { version = "0.4.4", features = ["cors"] }
 markdown = "1.0.0-alpha.15"
 async-fs = "2.1.0"
 base64 = "0.21.5"
+image = "0.24.7"

@@ -353,17 +353,24 @@ function complete_task(task_id) {
             }).then(async data => {
                 if (data.status === 418) {
                     let image_names_flat = await data.text();
-                    console.log(image_names_flat);
-                    let image_names = image_names_flat.split(',');
+                    let image_names = image_names_flat.split('\n');
                     let image_dialogue = document.getElementById('images-dialogue');
                     image_dialogue.innerHTML = '';
                     image_dialogue.innerHTML += '<p>Some images are on your local path. Please upload them</p>'
+                    console.log(image_names);
                     for (let i = 0; i < image_names.length; i++) {
                         if (image_names[i] !== '') {
-                            image_dialogue.innerHTML += '<input type="file" id="image_req_' + i + '">';
+                            let image_request_div = document.createElement('div');
+                            image_request_div.className = 'image-request';
+
+                            image_request_div.innerHTML += '<label for="image_req_' + i + '">' + image_names[i] + ' :</label>';
+                            image_request_div.innerHTML += '<input type="file" id="image_req_' + i + '">';
+                            image_dialogue.appendChild(image_request_div);
                         }
                     }
-                    image_dialogue.innerHTML += '<button id="images-submit">✓</button>';
+                    let button_div = document.createElement('div');
+                    button_div.innerHTML += '<button id="images-submit">✓</button>';
+                    image_dialogue.appendChild(button_div);
                     let submit_button = document.getElementById('images-submit');
                     submit_button.onclick = async function() {
                         let image_datas = [];

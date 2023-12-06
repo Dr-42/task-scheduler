@@ -78,7 +78,6 @@ impl App {
             .find(|task| task.get_id() == id)
             .ok_or("Task not found")?;
         let images = task.stop(summary).await;
-        println!("{:?}", images);
         Ok(images)
     }
 

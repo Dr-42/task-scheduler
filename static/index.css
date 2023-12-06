@@ -248,3 +248,9 @@ dialog::backdrop {
     right:    15px;
     top:      15px;
 }
+
+.image-request {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}

@@ -1,6 +1,6 @@
 use app::App;
 use axum::{
-    body::{self, Full},
+    body::{self, Body, Full},
     extract::DefaultBodyLimit,
     http::{header, Response, StatusCode},
     response::{Html, IntoResponse},
@@ -46,6 +46,7 @@ async fn main() -> Result<()> {
         .route("/addtask", post(add_task))
         .route("/renametask", post(rename_task))
         .route("/summaries/:key", get(get_summaries))
+        .route("/images/:key", get(get_images))
         .route("/uploadimages", post(upload_images))
         .layer(CorsLayer::permissive())
         .layer(DefaultBodyLimit::max(1024 * 1024 * 1024));
@@ -76,14 +77,12 @@ async fn modify_task(body: Json<PostTask>) -> impl IntoResponse {
         .find(|t| t.get_id() == body.id)
         .unwrap()
         .get_id();
-    println!("{} {}", body.id, body.action);
     match body.action.as_str() {
         "start" => {
             state.start_task(task).unwrap();
         }
         "stop" => {
             let images = state.stop_task(task, body.summary.clone()).await.unwrap();
-            println!("{:?}", images);
             if images.is_some() {
                 let images = images.unwrap();
                 return Response::builder()
@@ -116,7 +115,6 @@ struct AddTask {
 
 async fn add_task(body: Json<AddTask>) -> impl IntoResponse {
     let mut state = App::load().await.unwrap();
-    println!("{:?}", body);
     let parent = body.parent;
     let name = &body.name;
     if parent.is_some() {
@@ -176,6 +174,28 @@ async fn get_summaries(axum::extract::Path(key): axum::extract::Path<String>) ->
     }
 }
 
+async fn get_images(axum::extract::Path(key): axum::extract::Path<String>) -> impl IntoResponse {
+    use image::io::Reader as ImageReader;
+    use std::io::Cursor;
+    let img = ImageReader::open(format!("images/{}", key))
+        .unwrap()
+        .decode()
+        .unwrap();
+    let mut bytes = Vec::new();
+    img.write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png)
+        .unwrap();
+    let bytes = Body::from(bytes);
+    let m = "image/png";
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(
+            header::CONTENT_TYPE,
+            header::HeaderValue::from_str(m).unwrap(),
+        )
+        .body(bytes)
+        .unwrap()
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 struct UploadImages {
     id: u64,
@@ -200,6 +220,52 @@ async fn upload_images(body: Json<Vec<UploadImages>>) -> impl IntoResponse {
 
         async_fs::write(name, bytes).await.unwrap();
     }
+    // Open the temp summary and replace the links
+    let contents = async_fs::read_to_string(format!("temp/{}.md", body[0].id))
+        .await
+        .unwrap();
+
+    // Find ![name](link) and replace link
+    let mut new_contents = String::new();
+
+    for line in contents.lines() {
+        if line.starts_with("![") {
+            // Match the name
+            let start = line.find('[').unwrap() + 1;
+            let end = line.find(']').unwrap();
+            let name = &line[start..end];
+            // Get the image
+            for image in body.iter() {
+                if image.name == name {
+                    // Replace the link with the new one
+                    let mut line = line.to_string();
+                    let start = line.find('(').unwrap() + 1;
+                    let end = line.find(')').unwrap();
+                    let new_link =
+                        format!("images/{}_{}.{}", image.id, image.name, image.extension);
+                    line.replace_range(start..end, &new_link);
+                    new_contents.push_str(&line);
+                    new_contents.push('\n');
+                    break;
+                }
+            }
+        } else {
+            new_contents.push_str(line);
+            new_contents.push('\n');
+        }
+    }
+
+    let mut state = App::load().await.unwrap();
+    state
+        .stop_task(body[0].id, Some(new_contents))
+        .await
+        .unwrap();
+    state.save().await.unwrap();
+    // Delete the temp summary
+    std::mem::drop(contents);
+    async_fs::remove_file(format!("temp/{}.md", body[0].id))
+        .await
+        .unwrap();
     Response::builder()
         .status(StatusCode::OK)
         .body("".to_string())

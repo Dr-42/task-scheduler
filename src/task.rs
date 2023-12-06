@@ -50,18 +50,16 @@ impl Task {
     }
 
     async fn get_images(&self, summary: &str) -> HashMap<String, String> {
-        println!("Getting images");
         let mut images = HashMap::new();
         for line in summary.lines() {
             if line.contains("![") {
                 let mut split = line.split("](");
                 let image = split.next().unwrap().split('[').nth(1).unwrap();
                 let path = split.next().unwrap().split(')').next().unwrap();
-                if path.starts_with("http") {
+                if (path.starts_with("http")) || (path.starts_with("images")) {
                     continue;
                 }
                 images.insert(image.to_string(), path.to_string());
-                println!("{} {}", image, path);
             }
         }
         images
